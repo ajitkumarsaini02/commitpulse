@@ -320,7 +320,14 @@ describe('LandingPage', () => {
     expect(featureHeadings).toHaveLength(6);
 
     const titles = featureHeadings.map((h) => h.textContent);
-    expect(titles).toEqual(['Real-time Sync', 'Theme Engine', 'Isometric Math']);
+    expect(titles).toEqual([
+      'Real-time Sync',
+      'Theme Engine',
+      'Isometric Math',
+      'Navigation',
+      'Resources',
+      'Connect',
+    ]);
   });
 
   it('renders the CustomizeCTA', () => {
