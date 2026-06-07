@@ -66,6 +66,8 @@ export function ExportPanel({
 
   // Track async server download states
   const [isDownloading, setIsDownloading] = useState(false);
+  const [filePathCopied, setFilePathCopied] = useState(false);
+  const [markdownCopied, setMarkdownCopied] = useState(false);
 
   const handleDownloadBadge = async () => {
     if (!hasUsername || !snippet) return;
@@ -153,8 +155,85 @@ export function ExportPanel({
     }
   };
 
-  const [markdownCopied, setMarkdownCopied] = useState(false);
-  const [filePathCopied, setFilePathCopied] = useState(false);
+  const handleDownloadPng = async () => {
+    if (!hasUsername || !snippet) return;
+
+    try {
+      setIsDownloading(true);
+
+      const urlMatch = snippet.match(/\((https?:\/\/[^)]+)\)/) || snippet.match(/src="([^"]+)"/);
+
+      let targetUrl = urlMatch ? urlMatch[1] : '';
+
+      if (!targetUrl) {
+        toast.error('Could not determine badge URL.');
+        return;
+      }
+
+      targetUrl = targetUrl.replace(/&amp;/g, '&');
+
+      if (targetUrl.includes('https://commitpulse.vercel.app')) {
+        targetUrl = targetUrl.replace('https://commitpulse.vercel.app', window.location.origin);
+      }
+
+      const response = await fetch(targetUrl);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch SVG');
+      }
+
+      const svgText = await response.text();
+
+      const svgBlob = new Blob([svgText], {
+        type: 'image/svg+xml;charset=utf-8',
+      });
+
+      const svgUrl = URL.createObjectURL(svgBlob);
+
+      const img = new Image();
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+
+        canvas.width = img.width || 1200;
+        canvas.height = img.height || 630;
+
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          URL.revokeObjectURL(svgUrl);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0);
+
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+
+          const pngUrl = URL.createObjectURL(blob);
+
+          const link = document.createElement('a');
+          link.href = pngUrl;
+          link.download = `commitpulse-${username || 'badge'}.png`;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          URL.revokeObjectURL(pngUrl);
+        }, 'image/png');
+
+        URL.revokeObjectURL(svgUrl);
+      };
+
+      img.src = svgUrl;
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to download PNG badge.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -228,8 +307,23 @@ export function ExportPanel({
             {format === 'action'
               ? t('customize.export.download_not_available')
               : isDownloading
-                ? t('customize.export.downloading')
-                : t('customize.export.download_badge')}
+                ? t('customize.export.downloading', { defaultValue: 'Downloading...' })
+                : t('customize.export.download_svg', { defaultValue: 'Download SVG' })}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDownloadPng}
+            disabled={!hasUsername || isDownloading || format === 'action'}
+            className={`relative inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+              !hasUsername || isDownloading || format === 'action'
+                ? 'bg-gray-200/90 border border-black/10 text-gray-500 cursor-not-allowed dark:bg-white/10 dark:border-white/10 dark:text-white/35'
+                : 'bg-blue-500/10 border border-blue-500/30 text-blue-500 hover:bg-blue-500/20 hover:scale-[1.03] active:scale-[0.97]'
+            }`}
+          >
+            {isDownloading
+              ? t('customize.export.downloading', { defaultValue: 'Downloading...' })
+              : t('customize.export.download_png', { defaultValue: 'Download PNG' })}
           </button>
 
           {/* Clipboard Copy Button */}
@@ -309,7 +403,12 @@ export function ExportPanel({
         {format === 'action' ? (
           <>
             <p>
-              <strong>Step 1:</strong> Save the workflow snippet above as{' '}
+              <strong>
+                {t('customize.export.action_step_1_title', { defaultValue: 'Step 1:' })}
+              </strong>{' '}
+              {t('customize.export.action_step_1_body', {
+                defaultValue: 'Save the workflow snippet above as ',
+              })}
             </p>
             <div className="mt-2 bg-gray-100/80 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 flex items-center justify-between group">
               <code className="text-emerald-600 dark:text-emerald-300 font-mono select-all">
@@ -346,11 +445,22 @@ export function ExportPanel({
                 )}
               </button>
             </div>
-            <p>to automatically fetch and commit your customized badge.</p>
             <p>
-              <strong>Step 2:</strong> Embed the generated SVG into your{' '}
-              <code className="text-gray-700 dark:text-white/75">README.md</code> using the markdown
-              below:
+              {t('customize.export.action_step_1_footer', {
+                defaultValue: 'to automatically fetch and commit your customized badge.',
+              })}
+            </p>
+            <p>
+              <strong>
+                {t('customize.export.action_step_2_title', { defaultValue: 'Step 2:' })}
+              </strong>{' '}
+              {t('customize.export.action_step_2_body_1', {
+                defaultValue: 'Embed the generated SVG into your ',
+              })}
+              <code className="text-gray-700 dark:text-white/75">README.md</code>{' '}
+              {t('customize.export.action_step_2_body_2', {
+                defaultValue: 'using the markdown below:',
+              })}
             </p>
             <div className="mt-2 bg-gray-100/80 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 flex items-center justify-between group">
               <code className="text-emerald-600 dark:text-emerald-300 font-mono select-all">
@@ -391,13 +501,18 @@ export function ExportPanel({
         ) : format === 'tsx' ? (
           <>
             <p>
-              <strong>Step 1:</strong> Save the component code above as a file, e.g.{' '}
-              <code className="text-gray-700 dark:text-white/75">CommitPulse.tsx</code> in your
-              React project.
+              <strong>{t('customize.export.tsx_step_1_title', { defaultValue: 'Step 1:' })}</strong>{' '}
+              {t('customize.export.tsx_step_1_body_1', {
+                defaultValue: 'Save the component code above as a file, e.g. ',
+              })}
+              <code className="text-gray-700 dark:text-white/75">CommitPulse.tsx</code>{' '}
+              {t('customize.export.tsx_step_1_body_2', { defaultValue: 'in your React project.' })}
             </p>
             <p>
-              <strong>Step 2:</strong> Import and render the component natively in your JSX/TSX
-              layout:
+              <strong>{t('customize.export.tsx_step_2_title', { defaultValue: 'Step 2:' })}</strong>{' '}
+              {t('customize.export.tsx_step_2_body', {
+                defaultValue: 'Import and render the component natively in your JSX/TSX layout:',
+              })}
             </p>
             <div className="mt-2 bg-gray-100/80 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 flex items-center justify-between group">
               <code className="text-emerald-600 dark:text-emerald-300 font-mono select-all">
@@ -432,7 +547,9 @@ export function ExportPanel({
           </>
         ) : (
           <p>
-            Paste this into your GitHub profile&apos;s{' '}
+            {t('customize.export.default_footer_prefix', {
+              defaultValue: "Paste this into your GitHub profile's ",
+            })}
             <code className="text-gray-700 dark:text-white/75">README.md</code>.{' '}
             {t('customize.export.footer_tip')}
           </p>

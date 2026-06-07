@@ -132,7 +132,9 @@
       "copy_aria_disabled": "Add a GitHub username to enable copying the {{format}} export snippet",
       "copy_aria_enabled": "Copy {{format}} export snippet to clipboard",
       "footer_tip": "Paste this into your GitHub profile's README.md. The badge renders server-side, no script required.",
-      "tsx": "React TSX"
+      "tsx": "React TSX",
+      "download_svg": "Download SVG",
+      "download_png": "Download PNG"
     }
   },
   "dashboard": {

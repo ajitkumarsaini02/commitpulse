@@ -112,6 +112,9 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
     }
 
     if (typeof value !== 'string') {
+      if (params && 'defaultValue' in params) {
+        return params.defaultValue;
+      }
       return path;
     }
 
@@ -142,6 +145,9 @@ export function useTranslation() {
       t: (path: string, params?: Record<string, string>): string => {
         const value = getNestedValue(en, path);
         if (typeof value !== 'string') {
+          if (params && 'defaultValue' in params) {
+            return params.defaultValue;
+          }
           return path;
         }
         if (params) {
