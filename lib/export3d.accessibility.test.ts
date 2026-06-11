@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { generateMonolithSTL } from './export3d';
+import type { TowerData } from './svg/layout';
 
 describe('generateMonolithSTL - Accessibility compliance', () => {
   it('returns a valid STL string', () => {
@@ -9,7 +10,7 @@ describe('generateMonolithSTL - Accessibility compliance', () => {
         col: 0,
         h: 5,
       },
-    ] as any);
+    ] as TowerData[]);
 
     expect(typeof result).toBe('string');
     expect(result).toContain('solid commitpulse_monolith');
@@ -23,7 +24,7 @@ describe('generateMonolithSTL - Accessibility compliance', () => {
         col: 1,
         h: 10,
       },
-    ] as any);
+    ] as TowerData[]);
 
     expect(result).toContain('facet normal');
     expect(result).toContain('vertex');
@@ -51,7 +52,7 @@ describe('generateMonolithSTL - Accessibility compliance', () => {
         col: 2,
         h: 8,
       },
-    ] as any);
+    ] as TowerData[]);
 
     expect(() => result.toString()).not.toThrow();
     expect(typeof result.toString()).toBe('string');
