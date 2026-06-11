@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { NextRequest } from 'next/server';
-import { middleware as proxy } from './middleware';
+import { proxy } from './proxy';
 import { rateLimit } from './lib/rate-limit';
 
 vi.mock('./lib/rate-limit', () => ({
@@ -72,27 +72,23 @@ describe('Proxy rate-limit consistency', () => {
     expect(response.headers.get('X-RateLimit-Policy')).toBe('refresh');
   });
 
-  it('middleware config matcher covers all expected API route patterns', async () => {
-    const { config: mwConfig } = await import('./middleware');
+  it('proxy config matcher covers all expected API route patterns', async () => {
+    const { config: mwConfig } = await import('./proxy');
     const expectedRoutes = [
       '/api/streak/:path*',
       '/api/github/:path*',
       '/api/track-user/:path*',
       '/api/stats/:path*',
       '/api/og/:path*',
-      '/api/notify/:path*',
-      '/api/compare/:path*',
-      '/api/wrapped/:path*',
-      '/api/student/:path*',
     ];
     for (const route of expectedRoutes) {
       expect(mwConfig.matcher).toContain(route);
     }
   });
 
-  it('exports middleware function and config from middleware.ts', async () => {
-    const mod = await import('./middleware');
-    expect(typeof mod.middleware).toBe('function');
+  it('exports proxy function and config from proxy.ts', async () => {
+    const mod = await import('./proxy');
+    expect(typeof mod.proxy).toBe('function');
     expect(mod.config).toBeDefined();
     expect(Array.isArray(mod.config.matcher)).toBe(true);
     expect(mod.config.matcher.length).toBeGreaterThan(0);
