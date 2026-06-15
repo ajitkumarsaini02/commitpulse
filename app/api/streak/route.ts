@@ -580,7 +580,9 @@ export async function GET(request: Request) {
           'Cache-Control': cacheControl,
           'X-CommitPulse-Grace-Applied': String(grace),
           ETag: weakEtag,
-          'X-Cache-Status': shouldBypassCache ? `BYPASS, fetched=${new Date().toISOString()}` : 'HIT',
+          'X-Cache-Status': shouldBypassCache
+            ? `BYPASS, fetched=${new Date().toISOString()}`
+            : 'HIT',
         },
       });
     }
