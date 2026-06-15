@@ -1,5 +1,23 @@
 import '@testing-library/jest-dom';
 import { afterEach } from 'vitest';
+import { vi } from 'vitest';
+
+// Next.js ke dynamic headers context ko mock karo taaki tests crash na hon
+vi.mock('next/headers', () => {
+  const mockHeaders = new Headers({
+    host: 'localhost:3000',
+    'user-agent': 'vitest-test-agent',
+  });
+
+  return {
+    headers: vi.fn(() => Promise.resolve(mockHeaders)),
+    cookies: vi.fn(() => ({
+      get: vi.fn(),
+      set: vi.fn(),
+      delete: vi.fn(),
+    })),
+  };
+});
 
 // Custom Storage prototype override to fix Node.js v25+ experimental localStorage incompatibility with JSDOM
 if (typeof window !== 'undefined' && typeof window.Storage !== 'undefined') {
