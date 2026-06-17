@@ -3,7 +3,7 @@ import { fetchPRInsights } from '@/services/github/pr-insights';
 import { validateGitHubUsername } from '@/lib/validations';
 import { getRateLimitHeaders, RateLimiter } from '@/lib/rate-limit';
 
-const prInsightsLimiter = new RateLimiter(10, 60_000, 1);
+const prInsightsLimiter = new RateLimiter(10, 60_000, 10_000);
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

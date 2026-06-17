@@ -3,7 +3,7 @@ import { fetchCIAnalytics } from '@/services/github/ci-analytics';
 import { validateGitHubUsername } from '@/lib/validations';
 import { RateLimiter } from '@/lib/rate-limit';
 
-const ciAnalyticsLimiter = new RateLimiter(10, 60_000, 1);
+const ciAnalyticsLimiter = new RateLimiter(10, 60_000, 10_000);
 
 export async function GET(request: Request) {
   if (!(await ciAnalyticsLimiter.check('ci-analytics'))) {
