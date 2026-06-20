@@ -42,12 +42,18 @@ describe('components/DeveloperArena - Empty/Fallback Behavior (no IntersectionOb
     const handleSelectBattle = vi.fn();
     render(<DeveloperArena onSelectBattle={handleSelectBattle} />);
 
-    // No waitFor/timers needed: with the observer fallback active, CountUp's
-    // initial state is already the resolved `to` value.
-    expect(screen.getByText('142,580')).toBeInTheDocument();
-    expect(screen.getByText('894,204')).toBeInTheDocument();
-    expect(screen.getByText('147')).toBeInTheDocument();
-    expect(screen.getByText('3,412')).toBeInTheDocument();
+    // `toLocaleString()` is locale-dependent (comma vs. period vs. space vs.
+    // lakh-style grouping), so match on digits only rather than a hardcoded
+    // separator-formatted string. No waitFor/timers needed: with the observer
+    // fallback active, CountUp's initial state is already the resolved
+    // `to` value, not 0.
+    const matchesDigits = (expected: number) => (content: string) =>
+      content.replace(/[^0-9]/g, '') === String(expected);
+
+    expect(screen.getByText(matchesDigits(142580))).toBeInTheDocument();
+    expect(screen.getByText(matchesDigits(894204))).toBeInTheDocument();
+    expect(screen.getByText(matchesDigits(147))).toBeInTheDocument();
+    expect(screen.getByText(matchesDigits(3412))).toBeInTheDocument();
   });
 
   it('3. still renders the core section headings while running in fallback mode', () => {
